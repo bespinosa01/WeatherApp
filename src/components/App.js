@@ -1,27 +1,57 @@
-import React, { Component } from "react";
+import React from "react";
+import axios from "axios";
 import { hot } from "react-hot-loader";
 import DayList from "./DayList";
 import DailyCard from "./DailyCard";
 import DailyDetails from "./DailyDetails";
-class App extends Component {
+import Spinner from "./Spinner";
+
+const API_KEY = "7da066e8f1118f76450059957bf8cad7";
+
+class App extends React.Component {
 	state = {
-		days: [
-			"Sunday",
-			"Monday",
-			"Tuesday",
-			"Wednesday",
-			"Thursday",
-			"Friday"
-		],
-		selectedDay: null
+		days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri"],
+		selectedDay: null,
+		lat: null,
+		long: null,
+		forecast: []
 	};
 
 	onDaySelect = day => {
 		this.setState({ selectedDay: day });
 	};
 
+	componentDidMount() {
+		window.navigator.geolocation.getCurrentPosition(
+			position =>
+				this.setState({
+					lat: position.coords.latitude,
+					long: position.coords.longitude
+				}),
+			err => this.setState({ errorMessage: err.message })
+		);
+	}
+
+	getWeather(lat, long) {
+		axios
+			.get(
+				`http://api.openweathermap.org/data/2.5/forecast?lat=${
+					this.state.lat
+				}&lon=${this.state.long}&appid=${API_KEY}`
+			)
+			.then(response => {
+				const forecast = response.data;
+				this.setState({ forecast });
+			});
+		console.log(this.state);
+	}
+
 	render() {
-		//	console.log(`App.js State: ${this.state.days}`);
+		// this.getWeather();
+		if (!this.state.lat && !this.state.long) {
+			return <Spinner />;
+		}
+
 		return (
 			<div className="App">
 				<h1 className="ui center aligned header"> Weather App </h1>
